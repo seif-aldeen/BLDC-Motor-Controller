@@ -1,1 +1,165 @@
+// ======================================
+// BLDC Open Loop 6-Step Commutation
+// With Potentiometer + Direction Button
+// Arduino UNO
+// ======================================
 
+// ===== High Side =====
+#define AH 2
+#define BH 4
+#define CH 6
+
+// ===== Low Side =====
+#define AL 3
+#define BL 5
+#define CL 7
+
+// ===== Inputs =====
+#define POT A0
+#define BUTTON 8
+
+int delayTime;
+
+bool direction = true; // true = CW , false = CCW
+bool lastButtonState = HIGH;
+
+void setup() {
+
+  pinMode(AH, OUTPUT);
+  pinMode(BH, OUTPUT);
+  pinMode(CH, OUTPUT);
+
+  pinMode(AL, OUTPUT);
+  pinMode(BL, OUTPUT);
+  pinMode(CL, OUTPUT);
+
+  // Button with internal pullup
+  pinMode(BUTTON, INPUT_PULLUP);
+}
+
+void loop() {
+
+  // =========================
+  // Read Potentiometer
+  // =========================
+  int potValue = analogRead(POT);
+
+delayTime = map(potValue, 2000,3023, 4000, 5000);
+
+  // =========================
+  // Read Button
+  // =========================
+  bool buttonState = digitalRead(BUTTON);
+
+  // Toggle direction on press
+  if (buttonState == LOW && lastButtonState == HIGH) {
+
+    direction = !direction;
+
+    delay(200); // debounce
+  }
+
+  lastButtonState = buttonState;
+
+  // =========================
+  // Motor Rotation
+  // =========================
+
+  if(direction) {
+
+    // ===== CW =====
+    step1();
+    delayMicroseconds(delayTime);
+
+    step2();
+    delayMicroseconds(delayTime);
+
+    step3();
+    delayMicroseconds(delayTime);
+
+    step4();
+    delayMicroseconds(delayTime);
+
+    step5();
+    delayMicroseconds(delayTime);
+
+    step6();
+    delayMicroseconds(delayTime);
+
+  } else {
+
+    // ===== CCW =====
+    step6();
+    delayMicroseconds(delayTime);
+
+    step5();
+    delayMicroseconds(delayTime);
+
+    step4();
+    delayMicroseconds(delayTime);
+
+    step3();
+    delayMicroseconds(delayTime);
+
+    step2();
+    delayMicroseconds(delayTime);
+
+    step1();
+    delayMicroseconds(delayTime);
+  }
+}
+
+// ======================================
+// Turn Everything OFF
+// ======================================
+
+void allOff() {
+
+  digitalWrite(AH, LOW);
+  digitalWrite(BH, LOW);
+  digitalWrite(CH, LOW);
+
+  digitalWrite(AL, LOW);
+  digitalWrite(BL, LOW);
+  digitalWrite(CL, LOW);
+}
+
+// ======================================
+// 6-Step Commutation
+// ======================================
+
+void step1() {
+  allOff();
+  digitalWrite(AH, HIGH);
+  digitalWrite(BL, HIGH);
+}
+
+void step2() {
+  allOff();
+  digitalWrite(AH, HIGH);
+  digitalWrite(CL, HIGH);
+}
+
+void step3() {
+  allOff();
+  digitalWrite(BH, HIGH);
+  digitalWrite(CL, HIGH);
+}
+
+void step4() {
+  allOff();
+  digitalWrite(BH, HIGH);
+  digitalWrite(AL, HIGH);
+}
+
+void step5() {
+  allOff();
+  digitalWrite(CH, HIGH);
+  digitalWrite(AL, HIGH);
+}
+
+void step6() {
+  allOff();
+  digitalWrite(CH, HIGH);
+  digitalWrite(BL, HIGH);
+}
